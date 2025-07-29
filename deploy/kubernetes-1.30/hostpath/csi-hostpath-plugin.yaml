@@ -4,12 +4,39 @@ kind: ServiceAccount
 apiVersion: v1
 metadata:
   name: csi-hostpathplugin-sa
-  namespace: default
+  namespace: openshift-cluster-csi-drivers
   labels:
     app.kubernetes.io/instance: hostpath.csi.k8s.io
     app.kubernetes.io/part-of: csi-driver-host-path
     app.kubernetes.io/name: csi-hostpathplugin
     app.kubernetes.io/component: serviceaccount
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: csi-hostpathplugin-privileged-role
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - privileged
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csi-hostpathplugin-privileged-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: csi-hostpathplugin-privileged-role
+subjects:
+- kind: ServiceAccount
+  name: csi-hostpathplugin-sa
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -23,29 +50,11 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: external-attacher-runner
+  name: openshift-csi-main-attacher-role
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
-  namespace: default
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  labels:
-    app.kubernetes.io/instance: hostpath.csi.k8s.io
-    app.kubernetes.io/part-of: csi-driver-host-path
-    app.kubernetes.io/name: csi-hostpathplugin
-    app.kubernetes.io/component: health-monitor-controller-cluster-role
-  name: csi-hostpathplugin-health-monitor-controller-cluster-role
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: external-health-monitor-controller-runner
-subjects:
-- kind: ServiceAccount
-  name: csi-hostpathplugin-sa
-  namespace: default
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -59,11 +68,11 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: external-provisioner-runner
+  name: openshift-csi-main-provisioner-role
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
-  namespace: default
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -77,11 +86,11 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: external-resizer-runner
+  name: openshift-csi-main-resizer-role
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
-  namespace: default
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -95,11 +104,11 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: external-snapshotter-runner
+  name: openshift-csi-main-snapshotter-role
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
-  namespace: default
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -117,105 +126,111 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
-  namespace: default
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/instance: hostpath.csi.k8s.io
-    app.kubernetes.io/part-of: csi-driver-host-path
-    app.kubernetes.io/name: csi-hostpathplugin
-    app.kubernetes.io/component: attacher-role
-  name: csi-hostpathplugin-attacher-role
+  name: csi-hostpathplugin-provisioner-configmap-and-secret-reader-role
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: external-attacher-cfg
+  kind: ClusterRole
+  name: openshift-csi-provisioner-configmap-and-secret-reader-role
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/instance: hostpath.csi.k8s.io
-    app.kubernetes.io/part-of: csi-driver-host-path
-    app.kubernetes.io/name: csi-hostpathplugin
-    app.kubernetes.io/component: health-monitor-controller-role
-  name: csi-hostpathplugin-health-monitor-controller-role
+  name: csi-hostpathplugin-provisioner-volumeattachment-reader-role
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: external-health-monitor-controller-cfg
+  kind: ClusterRole
+  name: openshift-csi-provisioner-volumeattachment-reader-role
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/instance: hostpath.csi.k8s.io
-    app.kubernetes.io/part-of: csi-driver-host-path
-    app.kubernetes.io/name: csi-hostpathplugin
-    app.kubernetes.io/component: provisioner-role
-  name: csi-hostpathplugin-provisioner-role
+  name: csi-hostpathplugin-provisioner-volumeattributesclass-reader-role
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: external-provisioner-cfg
+  kind: ClusterRole
+  name: openshift-csi-provisioner-volumeattributesclass-reader-role
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/instance: hostpath.csi.k8s.io
-    app.kubernetes.io/part-of: csi-driver-host-path
-    app.kubernetes.io/name: csi-hostpathplugin
-    app.kubernetes.io/component: resizer-role
-  name: csi-hostpathplugin-resizer-role
+  name: csi-hostpathplugin-provisioner-volumesnapshot-reader-role
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: external-resizer-cfg
+  kind: ClusterRole
+  name: openshift-csi-provisioner-volumesnapshot-reader-role
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
+  namespace: openshift-cluster-csi-drivers
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/instance: hostpath.csi.k8s.io
-    app.kubernetes.io/part-of: csi-driver-host-path
-    app.kubernetes.io/name: csi-hostpathplugin
-    app.kubernetes.io/component: snapshotter-role
-  name: csi-hostpathplugin-snapshotter-role
+  name: csi-hostpathplugin-resizer-infrastructure-reader-role
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: external-snapshotter-leaderelection
+  kind: ClusterRole
+  name: openshift-csi-resizer-infrastructure-reader-role
 subjects:
 - kind: ServiceAccount
   name: csi-hostpathplugin-sa
+  namespace: openshift-cluster-csi-drivers
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csi-hostpathplugin-resizer-storageclass-reader-role
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: openshift-csi-resizer-storageclass-reader-role
+subjects:
+- kind: ServiceAccount
+  name: csi-hostpathplugin-sa
+  namespace: openshift-cluster-csi-drivers
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csi-hostpathplugin-resizer-volumeattributesclass-reader-role
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: openshift-csi-resizer-volumeattributesclass-reader-role
+subjects:
+- kind: ServiceAccount
+  name: csi-hostpathplugin-sa
+  namespace: openshift-cluster-csi-drivers
 ---
 kind: StatefulSet
 apiVersion: apps/v1
 metadata:
   name: csi-hostpathplugin
-  namespace: default
+  namespace: openshift-cluster-csi-drivers
   labels:
     app.kubernetes.io/instance: hostpath.csi.k8s.io
     app.kubernetes.io/part-of: csi-driver-host-path
-    app.kubernetes.io/name: csi-hostpathplugin
+    app.kubernetes.io/name: csi-snapshot-metadata
     app.kubernetes.io/component: plugin
 spec:
-  serviceName: "csi-hostpathplugin"
+  serviceName: "csi-snapshot-metadata"
   # One replica only:
   # Host path driver only works when everything runs
   # on a single node.
@@ -224,25 +239,26 @@ spec:
     matchLabels:
       app.kubernetes.io/instance: hostpath.csi.k8s.io
       app.kubernetes.io/part-of: csi-driver-host-path
-      app.kubernetes.io/name: csi-hostpathplugin
+      app.kubernetes.io/name: csi-snapshot-metadata
       app.kubernetes.io/component: plugin
   template:
     metadata:
       labels:
         app.kubernetes.io/instance: hostpath.csi.k8s.io
         app.kubernetes.io/part-of: csi-driver-host-path
-        app.kubernetes.io/name: csi-hostpathplugin
+        app.kubernetes.io/name: csi-snapshot-metadata
         app.kubernetes.io/component: plugin
     spec:
       serviceAccountName: csi-hostpathplugin-sa
       containers:
         - name: hostpath
-          image: registry.k8s.io/sig-storage/hostpathplugin:v1.16.1
+          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.0
           args:
             - "--drivername=hostpath.csi.k8s.io"
             - "--v=5"
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--nodeid=$(KUBE_NODE_NAME)"
+            - "--enable-snapshot-metadata"
             # end hostpath args
           env:
             - name: CSI_ENDPOINT
@@ -279,20 +295,6 @@ spec:
               name: csi-data-dir
             - mountPath: /dev
               name: dev-dir
-
-        - name: csi-external-health-monitor-controller
-          image: registry.k8s.io/sig-storage/csi-external-health-monitor-controller:v0.14.0
-          args:
-            - "--v=5"
-            - "--csi-address=$(ADDRESS)"
-            - "--leader-election"
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
-          imagePullPolicy: "IfNotPresent"
-          volumeMounts:
-            - name: socket-dir
-              mountPath: /csi
 
         - name: node-driver-registrar
           image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.13.0
@@ -386,6 +388,34 @@ spec:
             - mountPath: /csi
               name: socket-dir
 
+        - name: csi-snapshot-metadata
+          image: registry.k8s.io/sig-storage/csi-snapshot-metadata:v0.1.0
+          imagePullPolicy: "IfNotPresent"
+          command:
+          args:
+          - "-v=5"
+          - "--csi-address=/csi/csi.sock"
+          - "--tls-cert=/tmp/certificates/tls.crt"
+          - "--tls-key=/tmp/certificates/tls.key"
+          readinessProbe:
+            exec:
+              command:
+              - "/bin/grpc_health_probe"
+              - "-addr=:50051"
+              - "-tls"
+              - "-tls-no-verify"
+            initialDelaySeconds: 5
+          securityContext:
+            # This is necessary only for systems with SELinux, where
+            # non-privileged sidecar containers cannot access unix domain socket
+            # created by privileged CSI driver container.
+            privileged: true
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+            - name: csi-snapshot-metadata-server-certs
+              mountPath: /tmp/certificates
+              readOnly: true
         # end csi containers
 
       volumes:
@@ -415,4 +445,7 @@ spec:
             path: /dev
             type: Directory
           name: dev-dir
+        - name: csi-snapshot-metadata-server-certs
+          secret:
+            secretName: csi-snapshot-metadata-certs
         # end csi volumes
