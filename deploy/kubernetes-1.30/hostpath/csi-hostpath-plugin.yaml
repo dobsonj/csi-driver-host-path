@@ -389,7 +389,7 @@ spec:
               name: socket-dir
 
         - name: csi-snapshot-metadata
-          image: registry.k8s.io/sig-storage/csi-snapshot-metadata:v0.1.0
+          image: quay.io/openshift/origin-csi-external-snapshot-metadata:latest
           imagePullPolicy: "IfNotPresent"
           command:
           args:
@@ -397,14 +397,6 @@ spec:
           - "--csi-address=/csi/csi.sock"
           - "--tls-cert=/tmp/certificates/tls.crt"
           - "--tls-key=/tmp/certificates/tls.key"
-          readinessProbe:
-            exec:
-              command:
-              - "/bin/grpc_health_probe"
-              - "-addr=:50051"
-              - "-tls"
-              - "-tls-no-verify"
-            initialDelaySeconds: 5
           securityContext:
             # This is necessary only for systems with SELinux, where
             # non-privileged sidecar containers cannot access unix domain socket
